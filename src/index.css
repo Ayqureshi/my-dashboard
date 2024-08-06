@@ -1,13 +1,13 @@
-body {
+/* index.css or App.css */
+@import url('https://fonts.googleapis.com/css2?family=Rhodium+Libre&display=swap');
+
+body, html, #root, .App {
+  height: 100%;
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  font-family: 'Rhodium Libre', serif;
 }
 
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+/* Ensure all headings and other elements use the same font */
+h1, h2, h3, h4, h5, h6, p, a, button, input, textarea {
+  font-family: 'Rhodium Libre', serif;
 }

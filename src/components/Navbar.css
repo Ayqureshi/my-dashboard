@@ -1,0 +1,10 @@
+@import url('https://fonts.googleapis.com/css2?family=Rhodium+Libre&display=swap');
+
+/* Navbar.css */
+.navbar-text {
+  font-family: 'Rhodium Libre', serif;
+  font-size: 22px; /* Adjust the size as needed */
+  color: #333;
+  text-decoration: none; /* Remove underline */
+  font-weight: normal; /* Make the text non-bold */
+}

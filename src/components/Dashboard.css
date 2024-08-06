@@ -1,0 +1,96 @@
+/* Dashboard.css */
+
+/* Import Rhodium Libre font */
+@import url('https://fonts.googleapis.com/css2?family=Rhodium+Libre&display=swap');
+
+/* Apply the Rhodium Libre font to the entire body */
+body, html, #root, .App {
+  height: 100%;
+  margin: 0;
+  font-family: 'Rhodium Libre', serif;
+}
+
+/* Dashboard container */
+.dashboard-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 20px;
+  transition: margin-left 0.3s;
+  height: calc(100vh - 40px); /* 100vh minus padding */
+  overflow: hidden;
+  position: relative;
+  font-family: 'Rhodium Libre', serif; /* Ensure the font is applied */
+}
+
+/* Additional class to adjust margin when sidebar is open */
+.dashboard-container.sidebar-open {
+  margin-left: 240px; /* Adjust according to your sidebar width */
+}
+
+/* Card container */
+.card-container {
+  flex: 1 1 calc(33.333% - 20px); /* 3 cards per row with gap */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: calc(50% - 20px); /* Two rows */
+}
+
+/* Logo card container */
+.logo-card-container {
+  position: fixed;
+  top: 70px; /* Adjust according to your navbar height */
+  left: 0;
+  z-index: 1000;
+  transition: left 0.3s;
+}
+
+/* Additional class to adjust position when sidebar is open */
+.logo-card-container.sidebar-open {
+  left: 240px; /* Adjust according to your sidebar width */
+}
+
+/* Map container */
+.map-container {
+  width: 100%;
+  height: 100%;
+  background-color: #F0F0F0;
+}
+
+/* Circular progress */
+.circular-progress {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+}
+
+.circular-progress-inner {
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  border: 20px solid #4CAF50;
+  overflow: visible;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 24px;
+  font-weight: bold;
+}
+
+/* Ensure card titles use the Rhodium Libre font */
+.card-title {
+  font-family: 'Rhodium Libre', serif;
+  font-size: 24px;
+  margin-bottom: 10px;
+  color: #333; /* Ensure consistent color */
+}
+
+/* Card value */
+.card-value {
+  font-size: 18px;
+  color: #666;
+}

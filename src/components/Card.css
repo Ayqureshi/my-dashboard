@@ -1,0 +1,22 @@
+/* Card.css */
+.card {
+    background-color: white;
+    border-radius: 15px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    width: 100%;
+    font-family: 'Rhodium Libre', serif; /* Apply the font to the card */
+  }
+  
+  .card-title {
+    font-family: 'Rhodium Libre', serif; /* Ensure the title uses the font */
+    font-size: 24px;
+    margin-bottom: 10px;
+    color: #333; /* Ensure consistent color */
+  }
+  
+  .card-value {
+    font-size: 18px;
+    color: #666;
+  }
+  

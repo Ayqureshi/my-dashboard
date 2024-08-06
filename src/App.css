@@ -1,38 +1,53 @@
+@import url('https://fonts.googleapis.com/css2?family=Rhodium+Libre&display=swap');
+
+/* src/App.css */
+body, html, #root, .App {
+  height: 100%;
+  margin: 0;
+  font-family: 'Rhodium Libre', serif; /* Apply the global font */
+}
+
 .App {
-  text-align: center;
-}
-
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
-}
-
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
   display: flex;
   flex-direction: column;
+}
+
+.Navbar {
+  display: flex;
   align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
+  justify-content: space-between;
+  background-color: #ffffff;
+  padding: 10px;
 }
 
-.App-link {
-  color: #61dafb;
+.Sidebar {
+  display: none; /* Hide sidebar initially */
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.Sidebar.open {
+  display: block; /* Show sidebar when open */
+}
+
+.Content {
+  flex-grow: 1;
+  padding: 20px;
+  transition: margin-left 0.3s;
+}
+
+.Content.shifted {
+  margin-left: 100px; /* Adjust according to sidebar width */
+}
+
+.DashboardContainer {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+  padding: 20px;
+  transition: margin-left 0.3s;
+}
+
+.StyledCard {
+  margin: 20px;
+  padding: 20px;
+  flex-grow: 1;
 }
