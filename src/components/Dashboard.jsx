@@ -5,32 +5,45 @@ import LogoCard from './LogoCard';
 import Chart from '../chartConfig';
 import GaugeChart from 'react-gauge-chart';
 import { ComposableMap, Geographies, Geography } from "react-simple-maps";
+import WordCloudCard from './WordCloudCard';
+import TopMentionedUserCard from './TopMentionedUserCard';
+import './Dashboard.css'; // Import the CSS file
 
 const DashboardContainer = styled('div')(({ theme, isSidebarOpen }) => ({
   display: 'flex',
   flexWrap: 'wrap',
-  justifyContent: 'space-between',
+  justifyContent: 'space-between', // Space between items
   gap: '20px',
   padding: '20px',
+  paddingTop: '50px',
   transition: 'margin-left 0.3s',
   marginLeft: isSidebarOpen ? '240px' : '0',
-  height: 'calc(100vh - 40px)', // 100vh minus padding
-  overflow: 'hidden',
-  position: 'relative'
+  minHeight: '85vh', // Ensure container height
+  position: 'relative',
+  width: '100%',
 }));
 
 const CardContainer = styled('div')({
-  flex: '1 1 calc(33.333% - 20px)', // 3 cards per row with gap
+  flex: '1 1 calc(33.333% - 20px)', // 3 cards per row with gap on large screens
   display: 'flex',
   flexDirection: 'column',
   justifyContent: 'center',
   alignItems: 'center',
-  height: 'calc(50% - 20px)' // Two rows
+  minWidth: '250px', // Ensure cards don't shrink too much
+  '@media (max-width: 1200px)': {
+    flex: '1 1 calc(50% - 20px)', // 2 cards per row on medium screens
+  },
+  '@media (max-width: 768px)': {
+    flex: '1 1 100%', // 1 card per row on small screens
+  },
+  width: '100%', // Make cards take full available width
+  maxWidth: 'calc(100% - 40px)', // Adjust to fit within the container with padding
+  boxSizing: 'border-box', // Ensure padding and width are calculated together
 });
 
 const LogoCardContainer = styled('div')(({ isSidebarOpen }) => ({
   position: 'fixed',
-  top: '70px', // Adjust according to your navbar height
+  top: '50px', // Adjust according to your navbar height
   left: isSidebarOpen ? '240px' : '0', // Adjust according to your sidebar width
   zIndex: 1000,
   transition: 'left 0.3s'
@@ -69,7 +82,7 @@ const Dashboard = ({ isSidebarOpen, currentPage }) => {
     // Fetch hourly tweet data
     fetch('/tweets/perhour')
       .then(response => response.json())
-      .then(data => setTweetsPerHourData(data))
+      .then(data => setTweetsPerHourData(data.hourlyData || []))
       .catch(error => console.error('Error fetching tweets per hour:', error));
   }, []);
 
@@ -111,14 +124,15 @@ const Dashboard = ({ isSidebarOpen, currentPage }) => {
     });
   
     // Fetch tweet proportions
-    fetch('http://localhost:5001/tweets/proportion')
+    fetch('/tweets/proportion')
       .then(response => response.json())
       .then(data => {
-        const total = data.tweet + data.quote + data.replies + data.retweets;
-        const tweetPercentage = ((data.tweet / total) * 100).toFixed(2);
-        const quotePercentage = ((data.quote / total) * 100).toFixed(2);
-        const repliesPercentage = ((data.replies / total) * 100).toFixed(2);
-        const retweetsPercentage = ((data.retweets / total) * 100).toFixed(2);
+        const tweetPercentage = data.tweet;
+        const quotePercentage = data.quote;
+        const repliesPercentage = data.replies;
+        const retweetsPercentage = data.retweets;
+
+        console.log('Percentages:', { tweetPercentage, quotePercentage, repliesPercentage, retweetsPercentage }); // Log percentages
 
         if (tweetsProportionChartRef.current) {
           tweetsProportionChartRef.current.destroy();
@@ -135,7 +149,7 @@ const Dashboard = ({ isSidebarOpen, currentPage }) => {
             ],
             datasets: [{
               label: 'Tweets Proportion',
-              data: [data.tweet, data.quote, data.replies, data.retweets],
+              data: [parseFloat(tweetPercentage), parseFloat(quotePercentage), parseFloat(repliesPercentage), parseFloat(retweetsPercentage)],
               backgroundColor: [
                 'rgba(255, 99, 132, 0.2)',
                 'rgba(54, 162, 235, 0.2)',
@@ -150,6 +164,17 @@ const Dashboard = ({ isSidebarOpen, currentPage }) => {
               ],
               borderWidth: 1
             }]
+          },
+          options: {
+            tooltips: {
+              callbacks: {
+                label: function(tooltipItem, data) {
+                  const label = data.labels[tooltipItem.index];
+                  const value = data.datasets[0].data[tooltipItem.index];
+                  return `${label}: ${value.toLocaleString()} tweets`;
+                }
+              }
+            }
           }
         });
       })
@@ -248,6 +273,13 @@ const Dashboard = ({ isSidebarOpen, currentPage }) => {
             </div>
           </div>
         </Card>
+      </CardContainer>
+      {/* New Cards */}
+      <CardContainer>
+        <WordCloudCard />
+      </CardContainer>
+      <CardContainer>
+        <TopMentionedUserCard />
       </CardContainer>
     </DashboardContainer>
   );

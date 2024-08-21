@@ -24,8 +24,9 @@ const tweetSchema = new mongoose.Schema({
   retweetCount: Number,
   likeCount: Number,
   quoteCount: Number,
+  hashtags: [String], // Add hashtags field if not already present
+  mentions: [String], // Add mentions field if not already present
   createdAt: Date, // Ensure this field is present for time-based queries
-  // Add other fields as necessary
 }, { collection: 'freddy' });
 
 const Tweet = mongoose.model('Tweet', tweetSchema);
@@ -45,9 +46,9 @@ app.get('/tweets/search', async (req, res) => {
   const query = req.query.q;
 
   try {
-    // Perform a regex search on the rawContent field
+    // Perform a regex search on the rawContent field and limit results to 25
     const tweets = await Tweet.find({ rawContent: { $regex: query, $options: 'i' } })
-      .limit(100); // Limit to 100 results
+      .limit(25); // Limit to 25 results
 
     // Map the results to include only the necessary fields
     const formattedTweets = tweets.map(tweet => ({
@@ -60,7 +61,6 @@ app.get('/tweets/search', async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-
 
 
 // API endpoint to get the count of tweets from @realDonaldTrump
@@ -77,6 +77,7 @@ app.get('/tweets/donaldtrump', async (req, res) => {
 app.get('/tweets/proportion', async (req, res) => {
   try {
     const totalTweets = await Tweet.countDocuments();
+
     const [result] = await Tweet.aggregate([
       {
         $facet: {
@@ -98,12 +99,15 @@ app.get('/tweets/proportion', async (req, res) => {
 
     const proportions = result || { tweet: 0, quote: 0, replies: 0, retweets: 0 };
 
-    // Calculate percentages
+    // Adjust the tweet count to exclude the other categories
+    const adjustedTweetCount = proportions.tweet - (proportions.quote + proportions.replies + proportions.retweets);
+
+    // Calculate percentages, avoid division by zero
     const percentageProportions = {
-      tweet: ((proportions.tweet / totalTweets) * 100).toFixed(2),
-      quote: ((proportions.quote / totalTweets) * 100).toFixed(2),
-      replies: ((proportions.replies / totalTweets) * 100).toFixed(2),
-      retweets: ((proportions.retweets / totalTweets) * 100).toFixed(2),
+      tweet: totalTweets > 0 ? ((adjustedTweetCount / totalTweets) * 100).toFixed(2) : "0.00",
+      quote: totalTweets > 0 ? ((proportions.quote / totalTweets) * 100).toFixed(2) : "0.00",
+      replies: totalTweets > 0 ? ((proportions.replies / totalTweets) * 100).toFixed(2) : "0.00",
+      retweets: totalTweets > 0 ? ((proportions.retweets / totalTweets) * 100).toFixed(2) : "0.00",
     };
 
     res.json(percentageProportions);
@@ -213,6 +217,61 @@ app.get('/tweets/donaldtrump/perhour', async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
+// API endpoint to get hashtags for word cloud
+app.get('/tweets/hashtags', async (req, res) => {
+  try {
+    const hashtags = await Tweet.aggregate([
+      { $unwind: "$hashtags" },
+      { $group: { _id: "$hashtags", count: { $sum: 1 } } },
+      { $sort: { count: -1 } },
+      { $limit: 100 } // Limit to top 100 hashtags
+    ]);
+    res.json(hashtags.map(tag => ({
+      hashtag: tag._id,
+      count: tag.count,
+    })));
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/tweets/top-mentions', async (req, res) => {
+  try {
+    const mentions = await Tweet.aggregate([
+      { $unwind: "$mentionedUsers" }, // Unwind the mentionedUsers array
+      { 
+        $match: { 
+          "mentionedUsers.displayname": { $ne: null }, 
+          "mentionedUsers.username": { $exists: true, $ne: "" } // Ensure username exists and is not empty
+        }
+      },
+      { 
+        $group: { 
+          _id: "$mentionedUsers.displayname", // Group by mentionedUsers.displayname
+          count: { $sum: 1 } 
+        } 
+      }, 
+      { $sort: { count: -1 } }, // Sort by count in descending order
+      { $limit: 10 } // Limit to top 10
+    ]);
+
+    if (mentions.length === 0) {
+      return res.status(404).json({ message: 'No top mentions found' });
+    }
+
+    res.json(mentions.map(mention => ({
+      displayname: mention._id,
+      count: mention.count,
+    })));
+  } catch (err) {
+    console.error('Error fetching top mentions:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+
+
 
 // Start the server
 app.listen(port, () => {

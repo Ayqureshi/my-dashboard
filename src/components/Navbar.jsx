@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { Link, useNavigate } from 'react-router-dom'; // Import useNavigate instead of useHistory
+import React, { useState, useEffect, useRef } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { styled } from '@mui/material/styles';
 import AppBar from '@mui/material/AppBar';
 import Toolbar from '@mui/material/Toolbar';
@@ -24,6 +24,7 @@ const StyledToolbar = styled(Toolbar)({
   display: 'flex',
   justifyContent: 'space-between',
   alignItems: 'center',
+  padding: '0 20px',
 });
 
 const LeftSection = styled('div')({
@@ -33,11 +34,14 @@ const LeftSection = styled('div')({
 
 const Logo = styled(Typography)(({ theme }) => ({
   cursor: 'pointer',
-  marginLeft: theme.spacing(8),
+  marginLeft: theme.spacing(2),
   textDecoration: 'none',
-  fontSize: '24px',
+  fontSize: '2vw',
   fontWeight: 'normal',
   fontFamily: 'Rhodium Libre, serif',
+  '@media (max-width: 768px)': {
+    fontSize: '4vw',
+  },
 }));
 
 const SearchContainer = styled('div')(({ theme }) => ({
@@ -47,7 +51,10 @@ const SearchContainer = styled('div')(({ theme }) => ({
   marginLeft: theme.spacing(5),
   flexGrow: 1,
   maxWidth: '600px',
-  border: '1px solid black', // Set the border color to black
+  border: '1px solid black',
+  '@media (max-width: 768px)': {
+    maxWidth: '400px',
+  },
 }));
 
 const SearchIconWrapper = styled('div')(({ theme }) => ({
@@ -58,21 +65,24 @@ const SearchIconWrapper = styled('div')(({ theme }) => ({
   alignItems: 'center',
   justifyContent: 'center',
   color: '#757575',
-  cursor: 'pointer', // Set cursor to pointer to indicate clickability
+  cursor: 'pointer',
 }));
 
 const StyledInputBase = styled(InputBase)(({ theme }) => ({
-  fontSize: '18px',
+  fontSize: '1.5vw',
   fontWeight: 'normal',
   fontFamily: 'Rhodium Libre, serif',
-  width: '100%', // Ensure it takes full width of the parent
+  width: '100%',
+  '@media (max-width: 768px)': {
+    fontSize: '3vw',
+  },
   '& .MuiInputBase-input': {
     padding: theme.spacing(1, 1, 1, 0),
     paddingLeft: `calc(1em + ${theme.spacing(4)})`,
     transition: theme.transitions.create('width'),
     width: '100%',
     borderRadius: theme.shape.borderRadius,
-    border: 'none', // Remove any default border from input
+    border: 'none',
   },
 }));
 
@@ -92,60 +102,70 @@ const NavLinks = styled('div')({
 });
 
 const NavLink = styled(Button)(({ theme }) => ({
-  fontSize: '24px',
+  fontSize: '2vw',
   fontWeight: 'normal',
   fontFamily: 'Rhodium Libre, serif',
   color: '#000',
   textTransform: 'none',
   textDecoration: 'none',
+  '@media (max-width: 768px)': {
+    fontSize: '4vw',
+  },
 }));
 
 export default function Navbar({ toggleSidebar }) {
   const [searchValue, setSearchValue] = useState('');
   const [suggestions, setSuggestions] = useState([]);
-  const navigate = useNavigate(); // Use useNavigate instead of useHistory
-
-  // Use useCallback to memoize the debounced function
-  const debouncedFetchSuggestions = useCallback(
-    debounce(async (value) => {
-      if (value) {
-        try {
-          const response = await fetch(`/tweets/search?q=${encodeURIComponent(value)}`);
-          const data = await response.json();
-          setSuggestions(data.slice(0, 3)); // Limit to 3 suggestions
-        } catch (error) {
-          console.error('Error fetching suggestions:', error);
-        }
-      } else {
-        setSuggestions([]);
+  const searchContainerRef = useRef(null);
+  const navigate = useNavigate();
+  
+  const debouncedFetchSuggestions = useRef(debounce(async (value) => {
+    if (value) {
+      try {
+        const response = await fetch(`/tweets/search?q=${encodeURIComponent(value)}`);
+        const data = await response.json();
+        setSuggestions(data.slice(0, 3));
+      } catch (error) {
+        console.error('Error fetching suggestions:', error);
       }
-    }, 300), // 300ms debounce delay
-    [] // No dependencies to pass, use an empty array
-  );
+    } else {
+      setSuggestions([]);
+    }
+  }, 300)).current;
 
-  // Effect to call the debounce function on value change
   useEffect(() => {
     debouncedFetchSuggestions(searchValue);
   }, [searchValue, debouncedFetchSuggestions]);
 
-  // Handle input change
   const handleInputChange = (event) => {
     setSearchValue(event.target.value);
   };
 
-  // Handle suggestion click
   const handleSuggestionClick = (suggestion) => {
-    setSearchValue(suggestion.content); // Update to use content of the suggestion
-    setSuggestions([]); // Clear suggestions after selection
+    setSearchValue(suggestion.content);
+    setSuggestions([]);
   };
 
-  // Handle search submission
   const handleSearchSubmit = () => {
     if (searchValue.trim()) {
-      navigate(`/search-results?query=${encodeURIComponent(searchValue)}`); // Use navigate instead of history.push
-      setSuggestions([]); // Clear suggestions after search
+      navigate(`/search-results?query=${encodeURIComponent(searchValue)}`);
+      setSuggestions([]);
     }
   };
+
+  // Add an event listener to detect clicks outside of the search container
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (searchContainerRef.current && !searchContainerRef.current.contains(event.target)) {
+        setSuggestions([]);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [searchContainerRef]);
 
   return (
     <StyledAppBar position="static">
@@ -158,23 +178,22 @@ export default function Navbar({ toggleSidebar }) {
             onClick={toggleSidebar}
             style={{ color: '#000' }}
           >
-            <MenuIcon className="navbar-text" />
+            <MenuIcon />
           </IconButton>
-          <Logo variant="h6" component={Link} to="/" className="navbar-text">
+          <Logo variant="h6" component={Link} to="/">
             Home
           </Logo>
         </LeftSection>
-        <SearchContainer>
+        <SearchContainer ref={searchContainerRef}>
           <SearchIconWrapper onClick={handleSearchSubmit}>
-            <SearchIcon className="navbar-text" />
+            <SearchIcon />
           </SearchIconWrapper>
           <StyledInputBase
             value={searchValue}
             onChange={handleInputChange}
-            onKeyDown={(e) => e.key === 'Enter' && handleSearchSubmit()} // Listen for enter key
+            onKeyDown={(e) => e.key === 'Enter' && handleSearchSubmit()}
             placeholder="Search…"
             inputProps={{ 'aria-label': 'search' }}
-            className="navbar-text"
           />
           {suggestions.length > 0 && (
             <SuggestionsBox>
@@ -189,10 +208,10 @@ export default function Navbar({ toggleSidebar }) {
           )}
         </SearchContainer>
         <NavLinks>
-          <NavLink component={Link} to="/about-us" className="navbar-text">
+          <NavLink component={Link} to="/about-us">
             About Us
           </NavLink>
-          <NavLink component={Link} to="/support" className="navbar-text">
+          <NavLink component={Link} to="/support">
             Support
           </NavLink>
         </NavLinks>

@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import Dashboard from './components/Dashboard';
 import AboutUs from './components/AboutUs';
 import Support from './components/Support';
+import SearchResults from './components/SearchResults'; // Import the SearchResults component
 import Navbar from './components/Navbar';
 import Sidebar from './components/Sidebar';
 import './App.css';
@@ -34,6 +35,7 @@ function App() {
             <Route path="/" element={<Dashboard isSidebarOpen={isSidebarOpen} currentPage={currentPage} />} />
             <Route path="/about-us" element={<AboutUs />} />
             <Route path="/support" element={<Support />} />
+            <Route path="/search-results" element={<SearchResults />} /> {/* Add this route */}
           </Routes>
         </div>
       </div>
