@@ -24,10 +24,17 @@ const tweetSchema = new mongoose.Schema({
   retweetCount: Number,
   likeCount: Number,
   quoteCount: Number,
-  hashtags: [String], // Add hashtags field if not already present
-  mentions: [String], // Add mentions field if not already present
-  createdAt: Date, // Ensure this field is present for time-based queries
+  hashtags: [String],
+  mentionedUsers: [
+    {
+      id: String,
+      username: String,
+      displayname: String
+    }
+  ],
+  date: String,
 }, { collection: 'freddy' });
+
 
 const Tweet = mongoose.model('Tweet', tweetSchema);
 
@@ -41,7 +48,6 @@ app.get('/tweets/total', async (req, res) => {
   }
 });
 
-// API endpoint to search tweets based on a query
 app.get('/tweets/search', async (req, res) => {
   const query = req.query.q;
 
@@ -50,10 +56,13 @@ app.get('/tweets/search', async (req, res) => {
     const tweets = await Tweet.find({ rawContent: { $regex: query, $options: 'i' } })
       .limit(25); // Limit to 25 results
 
-    // Map the results to include only the necessary fields
+    // Map the results to include content, date, likes, replies, and quotes
     const formattedTweets = tweets.map(tweet => ({
       content: tweet.rawContent,
-      user: tweet.user, // Ensure this field exists in your schema
+      date: tweet.date || 'N/A',
+      likeCount: tweet.likeCount,
+      replyCount: tweet.replyCount,
+      quoteCount: tweet.quoteCount,
     }));
 
     res.json(formattedTweets);
@@ -61,6 +70,10 @@ app.get('/tweets/search', async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
+
+
+
 
 
 // API endpoint to get the count of tweets from @realDonaldTrump
@@ -131,88 +144,62 @@ app.get('/tweets/socialmedialinks', async (req, res) => {
   }
 });
 
-// API endpoint to get the number of tweets per hour (all tweets)
 app.get('/tweets/perhour', async (req, res) => {
   try {
-    // Get the current date and time
-    const now = new Date();
-
-    // Calculate the date and time 24 hours ago
-    const twentyFourHoursAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-
-    // Aggregate tweets created in the last 24 hours by hour
     const tweetsPerHour = await Tweet.aggregate([
       {
-        $match: {
-          createdAt: { $gte: twentyFourHoursAgo, $lte: now }
-        }
-      },
-      {
         $group: {
-          _id: {
-            hour: { $hour: "$createdAt" }
-          },
+          _id: { $hour: { $toDate: "$date" } },
           count: { $sum: 1 }
         }
       },
       {
-        $sort: { "_id.hour": 1 }
+        $sort: { "_id": 1 }
       }
     ]);
 
-    // Fill the result to ensure all 24 hours are present
+    // Fill in missing hours with 0 count
     const hourlyData = Array(24).fill(0);
     tweetsPerHour.forEach(hour => {
-      hourlyData[hour._id.hour] = hour.count;
+      hourlyData[hour._id] = hour.count;
     });
 
     const totalTweets = hourlyData.reduce((acc, curr) => acc + curr, 0);
 
     res.json({ hourlyData, total: totalTweets });
   } catch (err) {
+    console.error('Error in /tweets/perhour:', err);
     res.status(500).json({ error: err.message });
   }
 });
 
-// API endpoint to get tweets per hour specifically for @realDonaldTrump
-app.get('/tweets/donaldtrump/perhour', async (req, res) => {
+app.get('/tweets/donaldtrump/daily', async (req, res) => {
   try {
-    // Get the current date and time
-    const now = new Date();
-
-    // Calculate the date and time 24 hours ago
-    const twentyFourHoursAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-
-    // Aggregate tweets from @realDonaldTrump in the last 24 hours by hour
-    const trumpTweetsPerHour = await Tweet.aggregate([
+    // Aggregate tweets from @realDonaldTrump grouped by date
+    const trumpTweetsDaily = await Tweet.aggregate([
       {
         $match: {
-          rawContent: /@realDonaldTrump/i,
-          createdAt: { $gte: twentyFourHoursAgo, $lte: now }
+          rawContent: /@realDonaldTrump/i
         }
       },
       {
         $group: {
-          _id: {
-            hour: { $hour: "$createdAt" }
-          },
+          _id: { $dateToString: { format: "%Y-%m-%d", date: { $toDate: "$date" } } },
           count: { $sum: 1 }
         }
       },
       {
-        $sort: { "_id.hour": 1 }
+        $sort: { count: -1 }
       }
     ]);
 
-    // Fill the result to ensure all 24 hours are present
-    const hourlyData = Array(24).fill(0);
-    trumpTweetsPerHour.forEach(hour => {
-      hourlyData[hour._id.hour] = hour.count;
-    });
+    // Get the top 7 dates
+    const top7Dates = trumpTweetsDaily.slice(0, 3);
 
-    const totalTrumpTweets = hourlyData.reduce((acc, curr) => acc + curr, 0);
+    // Calculate the total number of Trump tweets
+    const totalTrumpTweets = trumpTweetsDaily.reduce((acc, curr) => acc + curr.count, 0);
 
-    res.json({ hourlyData, total: totalTrumpTweets });
+    res.json({ dailyData: trumpTweetsDaily, top7Dates, total: totalTrumpTweets });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -238,23 +225,32 @@ app.get('/tweets/hashtags', async (req, res) => {
 
 app.get('/tweets/top-mentions', async (req, res) => {
   try {
+    // First, let's count all documents
+    const totalDocs = await Tweet.countDocuments();
+    console.log(`Total documents in collection: ${totalDocs}`);
+
+    // Now let's count documents with mentionedUsers
+    const docsWithMentions = await Tweet.countDocuments({ "mentionedUsers.0": { $exists: true } });
+    console.log(`Documents with mentionedUsers: ${docsWithMentions}`);
+
     const mentions = await Tweet.aggregate([
-      { $unwind: "$mentionedUsers" }, // Unwind the mentionedUsers array
+      { $unwind: "$mentionedUsers" },
       { 
         $match: { 
-          "mentionedUsers.displayname": { $ne: null }, 
-          "mentionedUsers.username": { $exists: true, $ne: "" } // Ensure username exists and is not empty
+          "mentionedUsers.displayname": { $exists: true, $ne: null, $ne: "" } 
         }
       },
       { 
         $group: { 
-          _id: "$mentionedUsers.displayname", // Group by mentionedUsers.displayname
+          _id: "$mentionedUsers.displayname",
           count: { $sum: 1 } 
         } 
       }, 
-      { $sort: { count: -1 } }, // Sort by count in descending order
-      { $limit: 10 } // Limit to top 10
+      { $sort: { count: -1 } },
+      { $limit: 10 }
     ]);
+
+    console.log("Aggregation result:", mentions);
 
     if (mentions.length === 0) {
       return res.status(404).json({ message: 'No top mentions found' });
@@ -269,8 +265,6 @@ app.get('/tweets/top-mentions', async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-
-
 
 
 // Start the server

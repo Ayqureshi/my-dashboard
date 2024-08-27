@@ -3,6 +3,7 @@ import Card from './Card';
 
 const TopMentionedUserCard = () => {
   const [topUsers, setTopUsers] = useState([]);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     fetch('/tweets/top-mentions')
@@ -18,23 +19,28 @@ const TopMentionedUserCard = () => {
       })
       .catch(error => {
         console.error('Error fetching top mentions:', error);
+        setError(error.message);
       });
   }, []);
+
+  if (error) {
+    return <Card title="Top Mentioned Users"><p>Error: {error}</p></Card>;
+  }
 
   return (
     <Card title="Top Mentioned Users">
       <div style={{ height: '400px', overflowY: 'auto', padding: '10px' }}>
-        <ol style={{ paddingLeft: '20px', margin: 0 }}>
-          {topUsers.length > 0 ? (
-            topUsers.map((user, index) => (
+        {topUsers.length > 0 ? (
+          <ol style={{ paddingLeft: '20px', margin: 0 }}>
+            {topUsers.map((user, index) => (
               <li key={index} style={{ marginBottom: '8px', fontSize: '16px' }}>
-                {user.displayname || 'Unknown'} - {user.count} mentions
+                {user.displayname} - {user.count} mentions
               </li>
-            ))
-          ) : (
-            <p>No mentioned users found</p>
-          )}
-        </ol>
+            ))}
+          </ol>
+        ) : (
+          <p>No mentioned users found</p>
+        )}
       </div>
     </Card>
   );

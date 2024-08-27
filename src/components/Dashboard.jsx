@@ -7,44 +7,44 @@ import GaugeChart from 'react-gauge-chart';
 import { ComposableMap, Geographies, Geography } from "react-simple-maps";
 import WordCloudCard from './WordCloudCard';
 import TopMentionedUserCard from './TopMentionedUserCard';
-import './Dashboard.css'; // Import the CSS file
+import './Dashboard.css';
 
 const DashboardContainer = styled('div')(({ theme, isSidebarOpen }) => ({
   display: 'flex',
   flexWrap: 'wrap',
-  justifyContent: 'space-between', // Space between items
+  justifyContent: 'space-between',
   gap: '20px',
   padding: '20px',
   paddingTop: '50px',
   transition: 'margin-left 0.3s',
   marginLeft: isSidebarOpen ? '240px' : '0',
-  minHeight: '85vh', // Ensure container height
+  minHeight: '85vh',
   position: 'relative',
   width: '100%',
 }));
 
 const CardContainer = styled('div')({
-  flex: '1 1 calc(33.333% - 20px)', // 3 cards per row with gap on large screens
+  flex: '1 1 calc(33.333% - 20px)',
   display: 'flex',
   flexDirection: 'column',
   justifyContent: 'center',
   alignItems: 'center',
-  minWidth: '250px', // Ensure cards don't shrink too much
+  minWidth: '250px',
   '@media (max-width: 1200px)': {
-    flex: '1 1 calc(50% - 20px)', // 2 cards per row on medium screens
+    flex: '1 1 calc(50% - 20px)',
   },
   '@media (max-width: 768px)': {
-    flex: '1 1 100%', // 1 card per row on small screens
+    flex: '1 1 100%',
   },
-  width: '100%', // Make cards take full available width
-  maxWidth: 'calc(100% - 40px)', // Adjust to fit within the container with padding
-  boxSizing: 'border-box', // Ensure padding and width are calculated together
+  width: '100%',
+  maxWidth: 'calc(100% - 40px)',
+  boxSizing: 'border-box',
 });
 
 const LogoCardContainer = styled('div')(({ isSidebarOpen }) => ({
   position: 'fixed',
-  top: '50px', // Adjust according to your navbar height
-  left: isSidebarOpen ? '240px' : '0', // Adjust according to your sidebar width
+  top: '50px',
+  left: isSidebarOpen ? '240px' : '0',
   zIndex: 1000,
   transition: 'left 0.3s'
 }));
@@ -61,79 +61,36 @@ const Dashboard = ({ isSidebarOpen, currentPage }) => {
   const [socialMediaLinkTweetsCount, setSocialMediaLinkTweetsCount] = useState(0);
   const [trumpTweetsCount, setTrumpTweetsCount] = useState(0);
   const [tweetsPerHourData, setTweetsPerHourData] = useState([]);
+  const [trumpTweetsDaily, setTrumpTweetsDaily] = useState([]);
+  const [top7Dates, setTop7Dates] = useState([]);
 
   const tweetsPerMinuteChartRef = useRef(null);
   const tweetsProportionChartRef = useRef(null);
   const trumpTweetsChartRef = useRef(null);
 
   useEffect(() => {
-    // Fetch count of tweets from @realDonaldTrump
-    fetch('/tweets/donaldtrump')
+    fetch('/tweets/donaldtrump/daily')
       .then(response => response.json())
-      .then(data => setTrumpTweetsCount(data.count))
+      .then(data => {
+        setTrumpTweetsDaily(data.dailyData);
+        setTop7Dates(data.top7Dates);
+        setTrumpTweetsCount(data.total);
+      })
       .catch(error => console.error('Error fetching Trump tweets:', error));
 
-    // Fetch count of tweets with social media links
     fetch('/tweets/socialmedialinks')
       .then(response => response.json())
       .then(data => setSocialMediaLinkTweetsCount(data.count))
       .catch(error => console.error('Error fetching social media link tweets:', error));
 
-    // Fetch hourly tweet data
     fetch('/tweets/perhour')
       .then(response => response.json())
       .then(data => setTweetsPerHourData(data.hourlyData || []))
       .catch(error => console.error('Error fetching tweets per hour:', error));
-  }, []);
 
-  useEffect(() => {
-    if (tweetsPerMinuteChartRef.current) {
-      tweetsPerMinuteChartRef.current.destroy();
-    }
-    const tweetsPerMinuteCtx = document.getElementById('tweetsPerMinuteChart').getContext('2d');
-    tweetsPerMinuteChartRef.current = new Chart(tweetsPerMinuteCtx, {
-      type: 'line',
-      data: {
-        labels: Array.from({ length: 24 }, (_, i) => `Hour ${i}`),
-        datasets: [{
-          label: 'Tweets Per Hour',
-          data: tweetsPerHourData,
-          backgroundColor: 'rgba(54, 162, 235, 0.2)',
-          borderColor: 'rgba(54, 162, 235, 1)',
-          borderWidth: 1
-        }]
-      }
-    });
-  
-    if (trumpTweetsChartRef.current) {
-      trumpTweetsChartRef.current.destroy();
-    }
-    const trumpTweetsCtx = document.getElementById('trumpTweetsChart').getContext('2d');
-    trumpTweetsChartRef.current = new Chart(trumpTweetsCtx, {
-      type: 'bar',
-      data: {
-        labels: Array.from({ length: 24 }, (_, i) => `Hour ${i}`),
-        datasets: [{
-          label: 'Tweets from @realDonaldTrump',
-          data: tweetsPerHourData,  // Change this to match actual data for Trump tweets
-          backgroundColor: 'rgba(255, 99, 132, 0.2)',
-          borderColor: 'rgba(255, 99, 132, 1)',
-          borderWidth: 1
-        }]
-      }
-    });
-  
-    // Fetch tweet proportions
     fetch('/tweets/proportion')
       .then(response => response.json())
       .then(data => {
-        const tweetPercentage = data.tweet;
-        const quotePercentage = data.quote;
-        const repliesPercentage = data.replies;
-        const retweetsPercentage = data.retweets;
-
-        console.log('Percentages:', { tweetPercentage, quotePercentage, repliesPercentage, retweetsPercentage }); // Log percentages
-
         if (tweetsProportionChartRef.current) {
           tweetsProportionChartRef.current.destroy();
         }
@@ -142,14 +99,14 @@ const Dashboard = ({ isSidebarOpen, currentPage }) => {
           type: 'doughnut',
           data: {
             labels: [
-              `Tweet (${tweetPercentage}%)`, 
-              `Quote (${quotePercentage}%)`, 
-              `Replies (${repliesPercentage}%)`, 
-              `Retweets (${retweetsPercentage}%)`
+              `Tweet (${data.tweet}%)`, 
+              `Quote (${data.quote}%)`, 
+              `Replies (${data.replies}%)`, 
+              `Retweets (${data.retweets}%)`
             ],
             datasets: [{
               label: 'Tweets Proportion',
-              data: [parseFloat(tweetPercentage), parseFloat(quotePercentage), parseFloat(repliesPercentage), parseFloat(retweetsPercentage)],
+              data: [parseFloat(data.tweet), parseFloat(data.quote), parseFloat(data.replies), parseFloat(data.retweets)],
               backgroundColor: [
                 'rgba(255, 99, 132, 0.2)',
                 'rgba(54, 162, 235, 0.2)',
@@ -179,14 +136,65 @@ const Dashboard = ({ isSidebarOpen, currentPage }) => {
         });
       })
       .catch(error => console.error('Error fetching tweet proportions:', error));
-  
-    return () => {
-      if (tweetsPerMinuteChartRef.current) tweetsPerMinuteChartRef.current.destroy();
-      if (tweetsProportionChartRef.current) tweetsProportionChartRef.current.destroy();
-      if (trumpTweetsChartRef.current) trumpTweetsChartRef.current.destroy();
+  }, []);
+
+  useEffect(() => {
+    const generateHourlyLabels = () => {
+      const labels = [];
+      for (let i = 0; i < 24; i++) {
+        const hour = i % 12 === 0 ? 12 : i % 12;
+        const period = i < 12 ? 'AM' : 'PM';
+        labels.push(`${hour}:00 ${period}`);
+      }
+      return labels;
     };
+
+    if (tweetsPerMinuteChartRef.current) {
+      tweetsPerMinuteChartRef.current.destroy();
+    }
+    const tweetsPerMinuteCtx = document.getElementById('tweetsPerMinuteChart').getContext('2d');
+    tweetsPerMinuteChartRef.current = new Chart(tweetsPerMinuteCtx, {
+      type: 'line',
+      data: {
+        labels: generateHourlyLabels(),
+        datasets: [{
+          label: 'Tweets Per Hour',
+          data: tweetsPerHourData,
+          backgroundColor: 'rgba(54, 162, 235, 0.2)',
+          borderColor: 'rgba(54, 162, 235, 1)',
+          borderWidth: 1
+        }]
+      }
+    });
   }, [tweetsPerHourData]);
-  
+
+  useEffect(() => {
+    if (trumpTweetsChartRef.current) {
+      trumpTweetsChartRef.current.destroy();
+    }
+    const trumpTweetsCtx = document.getElementById('trumpTweetsChart').getContext('2d');
+    trumpTweetsChartRef.current = new Chart(trumpTweetsCtx, {
+      type: 'bar',
+      data: {
+        labels: trumpTweetsDaily.map(item => item._id),
+        datasets: [{
+          label: 'Tweets from @realDonaldTrump',
+          data: trumpTweetsDaily.map(item => item.count),
+          backgroundColor: 'rgba(255, 99, 132, 0.2)',
+          borderColor: 'rgba(255, 99, 132, 1)',
+          borderWidth: 1
+        }]
+      },
+      options: {
+        scales: {
+          y: {
+            beginAtZero: true
+          }
+        }
+      }
+    });
+  }, [trumpTweetsDaily]);
+
   return (
     <DashboardContainer isSidebarOpen={isSidebarOpen}>
       <LogoCardContainer isSidebarOpen={isSidebarOpen}>
@@ -215,6 +223,14 @@ const Dashboard = ({ isSidebarOpen, currentPage }) => {
       <CardContainer>
         <Card title="Tweets from @realDonaldTrump" value={trumpTweetsCount}>
           <canvas id="trumpTweetsChart"></canvas>
+          <div>
+            <h4>Top 3 Dates with Most Tweets:</h4>
+            <ul>
+              {top7Dates.map((date, index) => (
+                <li key={index}>{date._id}: {date.count} tweets</li>
+              ))}
+            </ul>
+          </div>
         </Card>
       </CardContainer>
       <CardContainer>
@@ -237,7 +253,6 @@ const Dashboard = ({ isSidebarOpen, currentPage }) => {
                     console.error("No geographies loaded");
                     return null;
                   }
-                  console.log("Geographies loaded:", geographies.length);
                   return geographies.map((geo) => {
                     const isHighlighted = ["United States of America", "China", "Russia"].includes(geo.properties.name);
                     return (
@@ -274,7 +289,6 @@ const Dashboard = ({ isSidebarOpen, currentPage }) => {
           </div>
         </Card>
       </CardContainer>
-      {/* New Cards */}
       <CardContainer>
         <WordCloudCard />
       </CardContainer>
