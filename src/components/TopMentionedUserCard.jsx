@@ -4,24 +4,32 @@ import Card from './Card';
 const TopMentionedUserCard = () => {
   const [topUsers, setTopUsers] = useState([]);
   const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('/tweets/top-mentions')
-      .then(response => {
+    const fetchTopMentions = async () => {
+      try {
+        const response = await fetch('/tweets/top-mentions');
         if (!response.ok) {
-          throw new Error('Network response was not ok');
+          throw new Error('Failed to fetch top mentions. Please try again later.');
         }
-        return response.json();
-      })
-      .then(data => {
-        console.log("Fetched data:", data); // Debug: log the fetched data
+        const data = await response.json();
+        console.log('Fetched data:', data);
         setTopUsers(data);
-      })
-      .catch(error => {
+      } catch (error) {
         console.error('Error fetching top mentions:', error);
         setError(error.message);
-      });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTopMentions();
   }, []);
+
+  if (loading) {
+    return <Card title="Top Mentioned Users"><p>Loading...</p></Card>;
+  }
 
   if (error) {
     return <Card title="Top Mentioned Users"><p>Error: {error}</p></Card>;

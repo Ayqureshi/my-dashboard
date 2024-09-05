@@ -6,6 +6,7 @@ import Support from './components/Support';
 import SearchResults from './components/SearchResults'; // Import the SearchResults component
 import Navbar from './components/Navbar';
 import Sidebar from './components/Sidebar';
+import ZoomedCardsPage from './components/ZoomedCardsPage';
 import './App.css';
 
 function App() {
@@ -36,6 +37,7 @@ function App() {
             <Route path="/about-us" element={<AboutUs />} />
             <Route path="/support" element={<Support />} />
             <Route path="/search-results" element={<SearchResults />} /> {/* Add this route */}
+            <Route path="/zoomed-cards" element={<ZoomedCardsPage />} /> {/* Add this route */}
           </Routes>
         </div>
       </div>

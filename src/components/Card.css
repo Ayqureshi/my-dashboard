@@ -3,24 +3,15 @@
   background-color: white;
   border-radius: 15px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  padding: 10px; /* Maintain padding */
+  padding: 10px;
   width: 100%;
   font-family: 'Rhodium Libre', serif;
-}
-/* Add this to your Card.css or a similar CSS file */
-button {
-  background-color: #4CAF50; /* Green background */
-  color: white; /* White text */
-  padding: 10px 20px; /* Padding */
-  border: none; /* Remove borders */
-  border-radius: 5px; /* Rounded corners */
-  cursor: pointer; /* Pointer cursor */
+  transition: transform 0.3s ease;
 }
 
-button:hover {
-  background-color: #45a049; /* Darker green on hover */
+.card:hover {
+  transform: translateY(-5px); /* Slight hover effect for interaction */
 }
-  
 
 .card-title {
   font-family: 'Rhodium Libre', serif;
@@ -28,19 +19,33 @@ button:hover {
   margin-bottom: 10px;
   color: #333;
 }
-  
+
 .card-value {
   font-size: 18px;
   color: #666;
 }
 
+/* Button styling */
+button {
+  background-color: #4CAF50; /* Green background */
+  color: white; /* White text */
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #45a049; /* Darker green on hover */
+}
+
 /* Adjustments for mobile screens */
 @media (max-width: 480px) {
   .card-title {
-    font-size: 20px; /* Slightly reduce title size */
+    font-size: 20px;
   }
-  
+
   .card-value {
-    font-size: 16px; /* Slightly reduce value size */
+    font-size: 16px;
   }
 }

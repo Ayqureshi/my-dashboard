@@ -2,6 +2,7 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
+const natural = require('natural');
 
 // Initialize Express application
 const app = express();
@@ -33,6 +34,7 @@ const tweetSchema = new mongoose.Schema({
     }
   ],
   date: String,
+  lang: String, // Add this line to include the language field
 }, { collection: 'freddy' });
 
 
@@ -229,39 +231,121 @@ app.get('/tweets/top-mentions', async (req, res) => {
     const totalDocs = await Tweet.countDocuments();
     console.log(`Total documents in collection: ${totalDocs}`);
 
+    console.log("Helko")
+
     // Now let's count documents with mentionedUsers
-    const docsWithMentions = await Tweet.countDocuments({ "mentionedUsers.0": { $exists: true } });
-    console.log(`Documents with mentionedUsers: ${docsWithMentions}`);
+    // const docsWithMentions = await Tweet.aggregate([{ $unwind: "$mentionedUsers" }]);
+    // console.log(`Documents with mentionedUsers: ${docsWithMentions.length}`);
 
-    const mentions = await Tweet.aggregate([
-      { $unwind: "$mentionedUsers" },
-      { 
-        $match: { 
-          "mentionedUsers.displayname": { $exists: true, $ne: null, $ne: "" } 
-        }
-      },
-      { 
-        $group: { 
-          _id: "$mentionedUsers.displayname",
-          count: { $sum: 1 } 
-        } 
-      }, 
-      { $sort: { count: -1 } },
-      { $limit: 10 }
-    ]);
+    const docsWithMentions = await Tweet.find({});
 
-    console.log("Aggregation result:", mentions);
+    console.log(docsWithMentions.length)
+
+    mentions_dict= {}
+    docsWithMentions.map(record=>{
+      let mentionsUserLst = eval(record["mentionedUsers"])
+      // console.log(mentionsUserLst)
+      for(var i in mentionsUserLst){
+        
+        let user = mentionsUserLst[i]['username']
+        if(user in mentions_dict == false){
+          mentions_dict[user] = 0
+        }        
+          mentions_dict[user]+=1
+      }
+    })
+
+
+    mentions = []
+    users = Object.keys(mentions_dict)
+    users.map(user=>{
+      mentions.push({"_id":user,"count":mentions_dict[user]})
+    })
+
+    mentions.sort((a,b)=>{
+      if(a.count < b.count){
+        return 1;
+      }
+      return -1;
+    })
+
+    // mentions_all.sort((a,b)=>{
+    //   return a
+    // })
+  
+  const top10 = mentions.slice(0, 10);
+  console.log(top10);
+
+    // const mentions1 = await Tweet.aggregate([
+    //   { $unwind: "$mentionedUsers" },
+    //   { 
+    //     $match: { 
+    //       "mentionedUsers.displayname": { $exists: true, $ne: null, $ne: "" } 
+    //     }
+    //   },
+
+    //   { 
+    //     $group: { 
+    //       _id: "$mentionedUsers.displayname",
+    //       count: { $sum: 1 } 
+    //     } 
+    //   }, 
+    //   { $sort: { count: -1 } },
+    //   { $limit: 10 }
+    // ]);
+
+    // console.log("Aggregation result:", mentions);
 
     if (mentions.length === 0) {
       return res.status(404).json({ message: 'No top mentions found' });
     }
 
-    res.json(mentions.map(mention => ({
+    res.json(top10.map(mention => ({
       displayname: mention._id,
       count: mention.count,
     })));
   } catch (err) {
     console.error('Error fetching top mentions:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/tweets/sentiment', async (req, res) => {
+  try {
+    const tweets = await Tweet.find({}, 'rawContent');
+    
+    let totalSentiment = 0;
+    const analyzer = new natural.SentimentAnalyzer('English', natural.PorterStemmer, 'afinn');
+    
+    tweets.forEach(tweet => {
+      const sentiment = analyzer.getSentiment(tweet.rawContent.split(' '));
+      totalSentiment += sentiment;
+    });
+    
+    const averageSentiment = totalSentiment / tweets.length;
+    
+    // Normalize to 0-1 range (AFINN sentiments typically range from -5 to 5)
+    const normalizedSentiment = (averageSentiment + 5) / 10;
+    
+    res.json({ sentiment: normalizedSentiment });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/tweets/languages', async (req, res) => {
+  try {
+    const languages = await Tweet.aggregate([
+      { $group: { _id: "$lang", count: { $sum: 1 } } },
+      { $sort: { count: -1 } }
+    ]);
+
+    res.json(languages.map(lang => ({
+      language: lang._id || 'unknown',
+      count: lang.count,
+    })));
+  } catch (err) {
+    console.error('Error fetching languages:', err);
     res.status(500).json({ error: err.message });
   }
 });

@@ -7,6 +7,7 @@ import GaugeChart from 'react-gauge-chart';
 import { ComposableMap, Geographies, Geography } from "react-simple-maps";
 import WordCloudCard from './WordCloudCard';
 import TopMentionedUserCard from './TopMentionedUserCard';
+import LanguageTreemap from './ LanguageTreemap';
 import './Dashboard.css';
 
 const DashboardContainer = styled('div')(({ theme, isSidebarOpen }) => ({
@@ -46,7 +47,7 @@ const LogoCardContainer = styled('div')(({ isSidebarOpen }) => ({
   top: '50px',
   left: isSidebarOpen ? '240px' : '0',
   zIndex: 1000,
-  transition: 'left 0.3s'
+  transition: 'left 0.3s',
 }));
 
 const MapContainer = styled('div')({
@@ -63,7 +64,7 @@ const Dashboard = ({ isSidebarOpen, currentPage }) => {
   const [tweetsPerHourData, setTweetsPerHourData] = useState([]);
   const [trumpTweetsDaily, setTrumpTweetsDaily] = useState([]);
   const [top7Dates, setTop7Dates] = useState([]);
-
+  const [sentimentScore, setSentimentScore] = useState(0);
   const tweetsPerMinuteChartRef = useRef(null);
   const tweetsProportionChartRef = useRef(null);
   const trumpTweetsChartRef = useRef(null);
@@ -195,32 +196,49 @@ const Dashboard = ({ isSidebarOpen, currentPage }) => {
     });
   }, [trumpTweetsDaily]);
 
+  useEffect(() => {
+    fetch('/tweets/sentiment')
+      .then(response => response.json())
+      .then(data => setSentimentScore(data.sentiment))
+      .catch(error => console.error('Error fetching sentiment:', error));
+  }, []);
+
+  const cardContainers = document.querySelectorAll('.card-container');
+
+  cardContainers.forEach(container => {
+    const randomRow = Math.floor(Math.random() * 3) + 1;
+    const randomCol = Math.floor(Math.random() * 3) + 1;
+
+    container.style.gridRow = randomRow;
+    container.style.gridColumn = randomCol;
+  });
+
   return (
     <DashboardContainer isSidebarOpen={isSidebarOpen}>
       <LogoCardContainer isSidebarOpen={isSidebarOpen}>
         <LogoCard currentPage={currentPage} />
       </LogoCardContainer>
-      <CardContainer>
+      <div className="card-container">
         <Card title="Tweets Per Hour" value="Hourly Data">
           <canvas id="tweetsPerMinuteChart"></canvas>
         </Card>
-      </CardContainer>
-      <CardContainer>
+      </div>
+      <div className="card-container">
         <Card title="Tweets Proportion">
           <canvas id="tweetsProportionChart"></canvas>
         </Card>
-      </CardContainer>
-      <CardContainer>
-        <Card title="Average User Sentiment" value="80%">
+      </div>
+      <div className="card-container">
+        <Card title="Average Tweet Sentiment" value={`${(sentimentScore * 100).toFixed(2)}%`}>
           <GaugeChart
-            id="gauge-chart"
+            id="sentiment-gauge-chart"
             nrOfLevels={3}
-            percent={0.8}
+            percent={sentimentScore}
             colors={['#FF5F6D', '#FFC371', '#38E54D']}
           />
         </Card>
-      </CardContainer>
-      <CardContainer>
+      </div>
+      <div className="card-container">
         <Card title="Tweets from @realDonaldTrump" value={trumpTweetsCount}>
           <canvas id="trumpTweetsChart"></canvas>
           <div>
@@ -232,45 +250,11 @@ const Dashboard = ({ isSidebarOpen, currentPage }) => {
             </ul>
           </div>
         </Card>
-      </CardContainer>
-      <CardContainer>
-        <Card title="Countries of Origin of Tweets">
-          <MapContainer>
-            <ComposableMap
-              projection="geoEqualEarth"
-              projectionConfig={{
-                scale: 150,
-                center: [0, 0]
-              }}
-              style={{
-                width: "100%",
-                height: "100%",
-              }}
-            >
-              <Geographies geography={geoUrl}>
-                {({ geographies }) => {
-                  if (!geographies.length) {
-                    console.error("No geographies loaded");
-                    return null;
-                  }
-                  return geographies.map((geo) => {
-                    const isHighlighted = ["United States of America", "China", "Russia"].includes(geo.properties.name);
-                    return (
-                      <Geography
-                        key={geo.rsmKey}
-                        geography={geo}
-                        fill={isHighlighted ? "#F53" : "#D6D6DA"}
-                        stroke="#FFFFFF"
-                      />
-                    );
-                  });
-                }}
-              </Geographies>
-            </ComposableMap>
-          </MapContainer>
-        </Card>
-      </CardContainer>
-      <CardContainer>
+      </div>
+      <div className="card-container">
+        <LanguageTreemap />
+      </div>
+      <div className="card-container">
         <Card title="Tweets with Social Media Links" value={socialMediaLinkTweetsCount}>
           <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
             <div style={{ 
@@ -288,13 +272,13 @@ const Dashboard = ({ isSidebarOpen, currentPage }) => {
             </div>
           </div>
         </Card>
-      </CardContainer>
-      <CardContainer>
+      </div>
+      <div className="card-container">
         <WordCloudCard />
-      </CardContainer>
-      <CardContainer>
+      </div>
+      <div className="card-container">
         <TopMentionedUserCard />
-      </CardContainer>
+      </div>
     </DashboardContainer>
   );
 };

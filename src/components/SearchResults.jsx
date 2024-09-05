@@ -9,10 +9,10 @@ const SearchResultsContainer = styled(Grid)(({ theme }) => ({
   width: '100%',
 }));
 
-const StyledPaper = styled(Paper)(({ theme }) => ({
-  padding: theme.spacing(2),
-  marginBottom: theme.spacing(2),
-}));
+// const StyledPaper = styled(Paper)(({ theme }) => ({
+//   padding: theme.spacing(2),
+//   marginBottom: theme.spacing(2),
+// }));
 
 const HighlightedText = styled('span')(({ theme }) => ({
   fontWeight: 'bold',

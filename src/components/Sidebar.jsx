@@ -1,5 +1,6 @@
 import React from 'react';
 import { Drawer, List, ListItem, ListItemText, ListItemIcon, Button } from '@mui/material';
+import { useNavigate } from 'react-router-dom'; // Import useNavigate for routing
 import HomeIcon from '@mui/icons-material/Home';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import LinkIcon from '@mui/icons-material/Link';
@@ -11,18 +12,25 @@ import MailIcon from '@mui/icons-material/Mail';
 import StarIcon from '@mui/icons-material/Star';
 import './Sidebar.css'; // Import the CSS file
 
-const Sidebar = ({ isOpen, toggleSidebar, onPageChange }) => {
+const Sidebar = ({ isOpen, toggleSidebar }) => {
+  const navigate = useNavigate(); // Hook for navigation
+
+  // Define sidebar items with navigation paths
   const items = [
-    { name: 'Dashboard', icon: <HomeIcon /> },
-    { name: 'View', icon: <VisibilityIcon /> },
-    { name: 'Starred', icon: <StarIcon /> },
-    { name: 'Links', icon: <LinkIcon /> },
-    { name: 'People', icon: <PeopleIcon /> },
-    { name: 'Sentiment', icon: <SentimentSatisfiedIcon /> },
-    { name: 'Tags', icon: <TagIcon /> },
-    { name: 'Mail', icon: <MailIcon /> },
-    { name: 'Location', icon: <LocationOnIcon /> },
+    { name: 'Hourly', icon: <VisibilityIcon />, path: '/zoomed-cards?filter=Hourly' },
+    { name: 'Tweet Type', icon: <StarIcon />, path: '/zoomed-cards?filter=starred' },
+    { name: 'Outside Links', icon: <LinkIcon />, path: '/zoomed-cards?filter=links' },
+    { name: 'User Spotlight', icon: <PeopleIcon />, path: '/zoomed-cards?filter=people' },
+    { name: 'Sentiment', icon: <SentimentSatisfiedIcon />, path: '/zoomed-cards?filter=sentiment' },
+    { name: 'Hashtags', icon: <TagIcon />, path: '/zoomed-cards?filter=tags' },
+    { name: 'Mentioned Users', icon: <MailIcon />, path: '/zoomed-cards?filter=mail' },
   ];
+
+  // Handler for page change
+  const handlePageChange = (path) => {
+    navigate(path); // Navigate to the specified path
+    toggleSidebar(); // Close the sidebar when navigating
+  };
 
   return (
     <Drawer
@@ -40,7 +48,7 @@ const Sidebar = ({ isOpen, toggleSidebar, onPageChange }) => {
           <ListItem
             button
             key={index}
-            onClick={() => onPageChange(item.name)}
+            onClick={() => handlePageChange(item.path)}
             className="sidebar-list-item"
           >
             <ListItemIcon>{item.icon}</ListItemIcon>

@@ -1,0 +1,128 @@
+/* Container for the entire zoomed card */
+.zoomed-cards-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 80vh; /* Full viewport height */
+    padding: 20px;
+    background-color: #ffffff; /* White background */
+    overflow: hidden; /* Prevent scrolling */
+  }
+  
+  /* Main zoomed card style */
+  .zoomed-card {
+    width: 90%; /* Wider card to utilize space */
+    max-width: 1000px; /* Set maximum width */
+    height: 75vh; /* Set height to 75% of the viewport for a shorter appearance */
+    background-color: white;
+    border-radius: 20px;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+    padding: 20px;
+    overflow: hidden; /* Prevent content overflow */
+    transition: transform 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    justify-content: center; /* Center content vertically */
+    align-items: center; /* Center content horizontally */
+  }
+  
+  /* Title of the zoomed card */
+  .zoomed-card-title {
+    font-size: 32px; /* Slightly reduced font size */
+    font-weight: bold;
+    margin-bottom: 15px;
+    color: #333;
+    text-align: center;
+  }
+  
+  /* Content inside the zoomed card */
+  .zoomed-card-content {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  /* Specific styling for charts to adapt them better */
+  .tweets-proportion-visualization,
+  .tweets-per-hour-visualization,
+  .tweet-sentiment-visualization,
+  .trump-tweets-visualization,
+  .countries-of-origin-visualization,
+  .hashtag-word-cloud-visualization {
+    width: 100%;
+    height: 65%; /* Reduce height to fit within the shorter card */
+    max-height: 400px; /* Prevent excessive height */
+    margin: 0 auto;
+  }
+  
+  /* Word cloud container styles */
+  .word-cloud-container {
+    display: flex;
+    width: 100%;
+    max-height: 65%; /* Constrain height for better fit */
+    overflow-y: auto;
+    gap: 10px;
+  }
+  
+  /* Style for the word cloud component to fit well */
+  .word-cloud {
+    flex: 2;
+    transform-origin: center center;
+  }
+  
+  /* Styling for the list of hashtags */
+  .hashtag-list-container {
+    flex: 1;
+    padding-left: 20px;
+    max-height: 300px; /* Reduced max height to fit within the card */
+    overflow-y: auto; /* Enable scrolling for long lists */
+    overflow-x: hidden; /* Hide horizontal overflow */
+    background-color: #f9f9f9; /* Light background to differentiate */
+    padding: 10px;
+    border-radius: 10px;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* List styling for top mentioned users or other list items */
+  .top-mentioned-list {
+    padding-left: 20px;
+    margin: 0;
+    list-style: none;
+    width: 100%;
+    max-height: 280px;
+    overflow-y: auto;
+  }
+  
+  .top-mentioned-list li {
+    margin-bottom: 8px;
+    font-size: 16px;
+    color: #333;
+  }
+  
+  /* Style for zoom buttons and other interactive elements */
+  .zoom-button {
+    margin-top: 10px;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 5px;
+    background-color: #4caf50;
+    color: white;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  .zoom-button:hover {
+    background-color: #45a049;
+  }
+  
+  /* Style for loading and error messages */
+  .zoomed-card p {
+    font-size: 18px;
+    color: #666;
+    margin: 10px 0;
+    text-align: center;
+  }
+  

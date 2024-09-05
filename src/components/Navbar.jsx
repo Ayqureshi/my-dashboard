@@ -181,7 +181,7 @@ export default function Navbar({ toggleSidebar }) {
             <MenuIcon />
           </IconButton>
           <Logo variant="h6" component={Link} to="/">
-            Home
+            home
           </Logo>
         </LeftSection>
         <SearchContainer ref={searchContainerRef}>
@@ -209,10 +209,10 @@ export default function Navbar({ toggleSidebar }) {
         </SearchContainer>
         <NavLinks>
           <NavLink component={Link} to="/about-us">
-            About Us
+            about us
           </NavLink>
           <NavLink component={Link} to="/support">
-            Support
+            support
           </NavLink>
         </NavLinks>
       </StyledToolbar>

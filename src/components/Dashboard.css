@@ -5,68 +5,27 @@ body, html, #root, .App {
   font-family: 'Rhodium Libre', serif;
 }
 
-/* Dashboard container */
+/* Dashboard main container */
 .dashboard-container {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-around; /* Space between cards */
-  gap: 20px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr); /* Three columns layout */
+  gap: 20px; /* Spacing between cards */
   padding: 20px;
-  transition: margin-left 0.3s;
   min-height: 85vh;
-  width: 100%; /* Allow full width */
-  margin: 0 auto; /* Center the dashboard */
-  overflow-y: auto; /* Allow vertical scrolling if content overflows */
+  width: 100%;
+  margin: 0 auto;
+  overflow-y: auto; /* Allow vertical scrolling */
   overflow-x: hidden; /* Prevent horizontal overflow */
 }
 
-/* Card container */
+/* Card container for each individual card */
 .card-container {
-  flex: 1 1 auto;
-  max-width: calc(100% - 40px); /* Adjusts based on screen size */
-  display: flex;
-  flex-direction: column;
+  display: grid;
   justify-content: center;
-  align-items: center;
-  height: auto;
-  box-sizing: border-box; /* Ensures padding and width are calculated together */
-}
-
-
-.card-container:hover {
-  transform: scale(1.05); /* Slightly enlarge the card on hover */
-}
-
-/* Adjust for tablet screens */
-@media (max-width: 1200px) {
-  .card-container {
-    flex: 1 1 calc(50% - 40px); /* 2 cards per row on medium screens */
-  }
-}
-
-/* Adjust for mobile screens */
-@media (max-width: 768px) {
-  .card-container {
-    flex: 1 1 100%; /* 1 card per row on small screens */
-  }
-}
-
-/* Card title */
-.card-title {
-  font-family: 'Rhodium Libre', serif;
-  font-size: 24px;
-  margin-bottom: 10px;
-  color: #333;
-  text-align: center; /* Center the text */
-  width: 100%; /* Allow title to take full width */
-}
-
-/* Card value */
-.card-value {
-  font-size: 18px;
-  color: #666;
-  text-align: center; /* Center the text */
-  width: 100%; /* Allow value to take full width */
+  background-color: white;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  padding: 20px;
 }
 
 /* Map container */
@@ -76,7 +35,7 @@ body, html, #root, .App {
   background-color: #F0F0F0;
 }
 
-/* Circular progress */
+/* Circular progress styles */
 .circular-progress {
   display: flex;
   justify-content: center;
@@ -85,26 +44,26 @@ body, html, #root, .App {
 }
 
 .circular-progress-inner {
-  width: 100%; /* Adjust size for larger screens */
+  width: 100%;
   height: 150px;
-  max-width: 300px; /* Cap the size */
+  max-width: 300px;
   border-radius: 50%;
-  border: 20px solid #4CAF50; /* Adjust border thickness */
-  overflow: visible;
+  border: 20px solid #4CAF50;
   display: flex;
   justify-content: center;
   align-items: center;
-  font-size: 24px; /* Adjust font size */
+  font-size: 24px;
   font-weight: bold;
 }
 
-/* Ensure the donut chart adjusts appropriately */
+/* Donut chart styling */
 .doughnut-chart {
-  width: 100%; /* Allow chart to take full width */
+  width: 100%;
   height: auto;
-  max-width: 400px; /* Cap the size */
+  max-width: 400px;
 }
 
+/* Wordcloud styling */
 .wordcloud {
   width: 100%;
   height: 100%;
