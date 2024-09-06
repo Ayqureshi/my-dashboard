@@ -4,6 +4,7 @@
     justify-content: center;
     align-items: center;
     height: 80vh; /* Full viewport height */
+    
     padding: 20px;
     background-color: #ffffff; /* White background */
     overflow: hidden; /* Prevent scrolling */
@@ -11,7 +12,7 @@
   
   /* Main zoomed card style */
   .zoomed-card {
-    width: 90%; /* Wider card to utilize space */
+    width: 900px; /* Wider card to utilize space */
     max-width: 1000px; /* Set maximum width */
     height: 75vh; /* Set height to 75% of the viewport for a shorter appearance */
     background-color: white;
@@ -22,8 +23,8 @@
     transition: transform 0.3s ease;
     display: flex;
     flex-direction: column;
-    justify-content: center; /* Center content vertically */
-    align-items: center; /* Center content horizontally */
+    justify-content: center; 
+    align-items: center;  
   }
   
   /* Title of the zoomed card */
@@ -37,7 +38,7 @@
   
   /* Content inside the zoomed card */
   .zoomed-card-content {
-    width: 100%;
+    width: 100vh;
     height: 100%;
     display: flex;
     flex-direction: column;
@@ -52,9 +53,9 @@
   .trump-tweets-visualization,
   .countries-of-origin-visualization,
   .hashtag-word-cloud-visualization {
-    width: 100%;
-    height: 65%; /* Reduce height to fit within the shorter card */
-    max-height: 400px; /* Prevent excessive height */
+    min-width: 100vh;
+    height: 1200px; /* Reduce height to fit within the shorter card */
+    max-height: 415px; /* Prevent excessive height */
     margin: 0 auto;
   }
   

@@ -1,13 +1,11 @@
 import React from 'react';
 import { Drawer, List, ListItem, ListItemText, ListItemIcon, Button } from '@mui/material';
 import { useNavigate } from 'react-router-dom'; // Import useNavigate for routing
-import HomeIcon from '@mui/icons-material/Home';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import LinkIcon from '@mui/icons-material/Link';
 import PeopleIcon from '@mui/icons-material/People';
 import SentimentSatisfiedIcon from '@mui/icons-material/SentimentSatisfied';
 import TagIcon from '@mui/icons-material/Tag';
-import LocationOnIcon from '@mui/icons-material/LocationOn';
 import MailIcon from '@mui/icons-material/Mail';
 import StarIcon from '@mui/icons-material/Star';
 import './Sidebar.css'; // Import the CSS file

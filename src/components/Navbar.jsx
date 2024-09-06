@@ -208,7 +208,7 @@ export default function Navbar({ toggleSidebar }) {
           )}
         </SearchContainer>
         <NavLinks>
-          <NavLink component={Link} to="/about-us">
+          <NavLink component={Link} to="https://election-integrity.online/">
             about us
           </NavLink>
           <NavLink component={Link} to="/support">

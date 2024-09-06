@@ -4,9 +4,7 @@ import Card from './Card';
 import LogoCard from './LogoCard';
 import Chart from '../chartConfig';
 import GaugeChart from 'react-gauge-chart';
-import { ComposableMap, Geographies, Geography } from "react-simple-maps";
 import WordCloudCard from './WordCloudCard';
-import TopMentionedUserCard from './TopMentionedUserCard';
 import LanguageTreemap from './ LanguageTreemap';
 import './Dashboard.css';
 
@@ -49,14 +47,6 @@ const LogoCardContainer = styled('div')(({ isSidebarOpen }) => ({
   zIndex: 1000,
   transition: 'left 0.3s',
 }));
-
-const MapContainer = styled('div')({
-  width: '100%',
-  height: '100%',
-  backgroundColor: '#F0F0F0',
-});
-
-const geoUrl = "https://raw.githubusercontent.com/brechtv/looker_map_layers/master/world-countries-sans-antarctica.json";
 
 const Dashboard = ({ isSidebarOpen, currentPage }) => {
   const [socialMediaLinkTweetsCount, setSocialMediaLinkTweetsCount] = useState(0);
@@ -109,16 +99,16 @@ const Dashboard = ({ isSidebarOpen, currentPage }) => {
               label: 'Tweets Proportion',
               data: [parseFloat(data.tweet), parseFloat(data.quote), parseFloat(data.replies), parseFloat(data.retweets)],
               backgroundColor: [
-                'rgba(255, 99, 132, 0.2)',
-                'rgba(54, 162, 235, 0.2)',
-                'rgba(255, 206, 86, 0.2)',
-                'rgba(75, 192, 192, 0.2)'
+                '#7E48AC',   // Neon green
+                '#00CED2',   // Neon red
+                '#F36C65',   // Neon cyan
+                '#F0C840',   // Neon yellow
               ],
               borderColor: [
-                'rgba(255, 99, 132, 1)',
-                'rgba(54, 162, 235, 1)',
-                'rgba(255, 206, 86, 1)',
-                'rgba(75, 192, 192, 1)'
+                '#7E48AC',
+                '#00CED2',
+                '#F36C65',
+                '#F0C840',
               ],
               borderWidth: 1
             }]
@@ -165,7 +155,25 @@ const Dashboard = ({ isSidebarOpen, currentPage }) => {
           borderColor: 'rgba(54, 162, 235, 1)',
           borderWidth: 1
         }]
-      }
+      },
+      options: {
+        scales: {
+          x: {
+            beginAtZero: true,
+            title: {
+              display: true,
+              text: 'Time of Day',
+            },
+          },
+          y: {
+            beginAtZero: true,
+            title: {
+              display: true,
+              text: 'Number of Tweets',
+            },
+          },
+        },
+      },
     });
   }, [tweetsPerHourData]);
 
@@ -188,11 +196,22 @@ const Dashboard = ({ isSidebarOpen, currentPage }) => {
       },
       options: {
         scales: {
+          x: {
+            beginAtZero: true,
+            title: {
+              display: true,
+              text: 'Date',
+            },
+          },
           y: {
-            beginAtZero: true
-          }
-        }
-      }
+            beginAtZero: true,
+            title: {
+              display: true,
+              text: 'Number of Tweets',
+            },
+          },
+        },
+      },
     });
   }, [trumpTweetsDaily]);
 
@@ -275,9 +294,6 @@ const Dashboard = ({ isSidebarOpen, currentPage }) => {
       </div>
       <div className="card-container">
         <WordCloudCard />
-      </div>
-      <div className="card-container">
-        <TopMentionedUserCard />
       </div>
     </DashboardContainer>
   );

@@ -3,7 +3,38 @@ import { useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { Line, Doughnut, Bar } from 'react-chartjs-2';
 import WordCloud from 'react-d3-cloud';
+import { Treemap, Tooltip, ResponsiveContainer } from 'recharts';
 import './ZoomedCardsPage.css';
+
+// Define language names mapping
+const languageNames = {
+  en: 'English',
+  es: 'Spanish',
+  pt: 'Portuguese',
+  hi: 'Hindi',
+  fr: 'French',
+  in: 'Indonesian',
+  nl: 'Dutch',
+  tl: 'Tagalog',
+  ht: 'Haitian Creole',
+  it: 'Italian',
+  no: 'Norwegian',
+  de: 'German',
+  et: 'Estonian',
+  ja: 'Japanese',
+  ca: 'Catalan',
+  // Add more languages as needed
+};
+
+// Function to generate random colors
+const generateColor = () => {
+  const letters = '0123456789ABCDEF';
+  let color = '#';
+  for (let i = 0; i < 6; i++) {
+    color += letters[Math.floor(Math.random() * 16)];
+  }
+  return color;
+};
 
 const ZoomedCardsPage = () => {
   const location = useLocation();
@@ -19,7 +50,6 @@ const ZoomedCardsPage = () => {
   const [trumpTweets, setTrumpTweets] = useState([]);
   const [countriesData, setCountriesData] = useState([]);
   const [hashtags, setHashtags] = useState([]);
-  const [topUsers, setTopUsers] = useState([]);
   const [zoom, setZoom] = useState(1); // Initial zoom level for word cloud
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -61,7 +91,7 @@ const ZoomedCardsPage = () => {
             const hashtagsResponse = await axios.get('http://localhost:5001/tweets/hashtags');
             const topWords = hashtagsResponse.data
               .map(item => ({
-                text: item.hashtag,
+                text: item.hashtag.replace(/[[]']+/g, ''), // Remove unnecessary escape character
                 value: item.count,
               }))
               .sort((a, b) => b.value - a.value)
@@ -69,8 +99,8 @@ const ZoomedCardsPage = () => {
             setHashtags(topWords);
             break;
           case 'mail':
-            const usersResponse = await axios.get('http://localhost:5001/tweets/top-mentions');
-            setTopUsers(usersResponse.data);
+            const languagesResponse = await axios.get('http://localhost:5001/tweets/languages');
+            setCountriesData(languagesResponse.data); // Correct usage of setCountriesData
             break;
           default:
             break;
@@ -139,16 +169,50 @@ const ZoomedCardsPage = () => {
     ],
   };
 
+  const tweetsProportionOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+  };
+
   const sentimentData = {
     labels: ['Average Sentiment'],
     datasets: [
       {
         label: 'Sentiment Score',
-        data: [sentiment !== null ? sentiment * 10 : 0],
+        data: [sentiment !== null ? sentiment * 100 : 0], // Adjusted to display as percentage
         backgroundColor: ['#FFCE56'],
         borderWidth: 1,
       },
     ],
+  };
+
+  const sentimentOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    scales: {
+      y: {
+        beginAtZero: true,
+        max: 100, // Set max value to 100 for percentage scale
+        title: {
+          display: true,
+          text: 'Sentiment Score (%)',
+        },
+      },
+    },
+    plugins: {
+      tooltip: {
+        callbacks: {
+          label: function (context) {
+            let label = context.dataset.label || '';
+            if (label) {
+              label += ': ';
+            }
+            label += `${context.parsed.y.toFixed(1)}%`; // Display as percentage
+            return label;
+          },
+        },
+      },
+    },
   };
 
   const trumpTweetsData = {
@@ -162,29 +226,59 @@ const ZoomedCardsPage = () => {
     ],
   };
 
+  const trumpTweetsOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    scales: {
+      x: {
+        beginAtZero: true,
+        title: {
+          display: true,
+          text: 'Date',
+        },
+      },
+      y: {
+        beginAtZero: true,
+        title: {
+          display: true,
+          text: 'Number of Tweets',
+        },
+      },
+    },
+  };
+
   const countriesDataChart = {
-    labels: countriesData.map(country => country.name),
+    labels: countriesData.map(item => languageNames[item.language] || 'Unknown'),
     datasets: [
       {
-        label: 'Tweets by Country',
-        data: countriesData.map(country => country.count),
-        backgroundColor: '#36A2EB',
+        label: 'Languages of Tweets',
+        data: countriesData.map(item => item.count),
+        backgroundColor: countriesData.map(() => generateColor()),
       },
     ],
   };
 
-  const topUsersData = {
-    labels: topUsers.map(user => user.displayname),
-    datasets: [
-      {
-        label: 'Top Mentioned Users',
-        data: topUsers.map(user => user.count),
-        backgroundColor: '#FF6384',
+  const countriesDataOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    scales: {
+      x: {
+        title: {
+          display: true,
+          text: 'Language',
+        },
       },
-    ],
+      y: {
+        beginAtZero: true,
+        title: {
+          display: true,
+          text: 'Number of Tweets',
+        },
+      },
+    },
   };
 
-  const fontSizeMapper = word => Math.log2(word.value) * 35; // Mapper function for word cloud font sizes
+  const fontSizeMapper = word => Math.log2(word.value) * 45; // Mapper function for word cloud font sizes
   const rotate = () => 0; // No rotation for better readability
   const handleZoomIn = () => setZoom(prevZoom => prevZoom * 1.2); // Increase zoom level for word cloud
 
@@ -216,7 +310,7 @@ const ZoomedCardsPage = () => {
           <div className="zoomed-card tweets-proportions">
             <h2 className="zoomed-card-title">Tweets Proportions</h2>
             <div className="zoomed-card-content">
-              <Doughnut data={tweetsProportionData} options={{ responsive: true, maintainAspectRatio: false }} />
+              <Doughnut data={tweetsProportionData} options={tweetsProportionOptions} />
             </div>
           </div>
         );
@@ -225,7 +319,7 @@ const ZoomedCardsPage = () => {
           <div className="zoomed-card tweet-sentiment">
             <h2 className="zoomed-card-title">Average Tweet Sentiment</h2>
             <div className="zoomed-card-content">
-              <Bar data={sentimentData} options={{ responsive: true, maintainAspectRatio: false }} />
+              <Bar data={sentimentData} options={sentimentOptions} />
             </div>
           </div>
         );
@@ -243,67 +337,89 @@ const ZoomedCardsPage = () => {
           <div className="zoomed-card trump-tweets">
             <h2 className="zoomed-card-title">Tweets from @realDonaldTrump</h2>
             <div className="zoomed-card-content">
-              <Bar data={trumpTweetsData} options={{ responsive: true, maintainAspectRatio: false }} />
+              <Bar data={trumpTweetsData} options={trumpTweetsOptions} />
             </div>
           </div>
         );
       case 'location':
         return (
           <div className="zoomed-card countries-of-origin">
-            <h2 className="zoomed-card-title">Countries of Origin</h2>
+            <h2 className="zoomed-card-title">Languages of Tweets</h2>
             <div className="zoomed-card-content">
-              <Bar data={countriesDataChart} options={{ responsive: true, maintainAspectRatio: false }} />
+              <Bar data={countriesDataChart} options={countriesDataOptions} />
             </div>
           </div>
         );
-      case 'tags':
-        return (
-          <div className="zoomed-card hashtag-word-cloud">
-            <h2 className="zoomed-card-title">Hashtag Word Cloud</h2>
-            <div className="zoomed-card-content word-cloud-container">
-              <div className="word-cloud" style={{ transform: `scale(${zoom})`, height: '300px' }}>
-                {hashtags.length > 0 ? (
-                  <WordCloud
-                    data={hashtags}
-                    fontSizeMapper={fontSizeMapper}
-                    rotate={rotate}
-                    width={300}
-                    height={300}
-                  />
-                ) : (
-                  <p>No data available for the word cloud.</p>
-                )}
-              </div>
-              <div className="hashtag-list-container">
-                <h4>Top Hashtags</h4>
-                <ul className="top-mentioned-list">
-                  {hashtags.map((word, index) => (
-                    <li key={index}>
-                      {index + 1}. {word.text} ({word.value} mentions)
-                    </li>
-                  ))}
-                </ul>
-                <button onClick={handleZoomIn} className="zoom-button">Zoom In</button>
+        case 'tags':
+          return (
+            <div className="zoomed-card hashtag-word-cloud">
+              <h2 className="zoomed-card-title">Hashtag Word Cloud</h2>
+              <div className="zoomed-card-content word-cloud-container">
+                <div className="word-cloud" style={{ transform: `scale(${zoom})`, height: '300px' }}>
+                  {hashtags.length > 0 ? (
+                    <WordCloud
+                      data={hashtags}
+                      fontSizeMapper={fontSizeMapper}
+                      rotate={rotate}
+                      width={300}
+                      height={300}
+                    />
+                  ) : (
+                    <p>No data available for the word cloud.</p>
+                  )}
+                </div>
+                <div className="hashtag-list-container">
+                  <h4>Top Hashtags</h4>
+                  <ul className="top-mentioned-list">
+                    {hashtags.map((word, index) => (
+                      <li key={index}>
+                        {index + 1}. {word.text.replace(/[\[\]']/g, '')} ({word.value} mentions)
+                      </li>
+                    ))}
+                  </ul>
+                  <button onClick={handleZoomIn} className="zoom-button">Zoom In</button>
+                </div>
               </div>
             </div>
-          </div>
-        );
+          );
       case 'mail':
         return (
-          <div className="zoomed-card top-mentioned-users">
-            <h2 className="zoomed-card-title">Top Mentioned Users</h2>
+          <div className="zoomed-card language-treemap">
+            <h2 className="zoomed-card-title">Languages of Tweets</h2>
             <div className="zoomed-card-content">
-              {topUsers.length > 0 ? (
-                <ol className="top-mentioned-list">
-                  {topUsers.map((user, index) => (
-                    <li key={index}>
-                      {user.displayname} - {user.count} mentions
-                    </li>
-                  ))}
-                </ol>
-              ) : (
-                <p>No mentioned users found</p>
-              )}
+              <ResponsiveContainer width="100%" height={300}>
+                <Treemap
+                  data={countriesData.map((item) => ({
+                    name: languageNames[item.language] || 'Unknown',
+                    size: item.count,
+                    fill: generateColor(),
+                  }))}
+                  dataKey="size"
+                  nameKey="name"
+                  stroke="#fff"
+                  isAnimationActive
+                >
+                  <Tooltip
+                    content={({ payload }) => {
+                      if (!payload || !payload.length) return null;
+                      const { name, size } = payload[0].payload;
+                      return (
+                        <div
+                          style={{
+                            background: 'white',
+                            border: '1px solid #ccc',
+                            padding: '5px',
+                          }}
+                        >
+                          <strong>{name}</strong>
+                          <br />
+                          Count: {size}
+                        </div>
+                      );
+                    }}
+                  />
+                </Treemap>
+              </ResponsiveContainer>
             </div>
           </div>
         );

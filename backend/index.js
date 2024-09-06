@@ -3,6 +3,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const natural = require('natural');
+const nodemailer = require('nodemailer');
 
 // Initialize Express application
 const app = express();
@@ -17,6 +18,14 @@ const uri = "mongodb+srv://auquresh:BrBB7fA9jSf4a0Pt@cluster0.dznfjm9.mongodb.ne
 mongoose.connect(uri)
   .then(() => console.log("MongoDB database connection established successfully"))
   .catch(err => console.error("Failed to connect to MongoDB", err));
+
+const transporter = nodemailer.createTransport({
+  service: 'Gmail', // Replace with your email provider
+  auth: {
+    user: 'ameenbakes@gmail.com', // Replace with your email
+    pass: 'Icecreamlover1', // Replace with your email password
+  },
+});
 
 // Define a schema and model for tweets
 const tweetSchema = new mongoose.Schema({
@@ -349,6 +358,29 @@ app.get('/tweets/languages', async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
+app.post('/api/support', async (req, res) => {
+  const { name, email, subject, message } = req.body;
+
+  const mailOptions = {
+    from: email,
+    to: process.env.EMAIL_USER, // Using the environment variable
+    subject: `Support Request: ${subject}`,
+    text: `Name: ${name}\nEmail: ${email}\n\nMessage:\n${message}`,
+  };
+
+  try {
+    await transporter.sendMail(mailOptions);
+    res.status(200).send('Support request submitted successfully.');
+  } catch (error) {
+    console.error('Error sending support request email:', error);
+    if (error.response) {
+      console.error('Error response:', error.response);
+    }
+    res.status(500).send('Failed to submit support request. Please check your email settings or try again later.');
+  }
+});
+
 
 
 // Start the server

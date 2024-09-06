@@ -23,6 +23,19 @@ const languageNames = {
   // Add more languages as needed
 };
 
+// List of language codes to ignore
+const ignoredLanguages = ['QME', 'UND', 'QAM'];
+
+// Function to generate random colors
+const generateColor = () => {
+  const letters = '0123456789ABCDEF';
+  let color = '#';
+  for (let i = 0; i < 6; i++) {
+    color += letters[Math.floor(Math.random() * 16)];
+  }
+  return color;
+};
+
 const LanguageTreemap = () => {
   const [languageData, setLanguageData] = useState([]);
 
@@ -30,16 +43,17 @@ const LanguageTreemap = () => {
     fetch('/tweets/languages')
       .then((response) => response.json())
       .then((data) => {
-        // Sort the data by count and get the top 15 languages
+        // Filter out ignored languages, sort the data by count, and get the top 15 languages
         const top15Languages = data
+          .filter(item => !ignoredLanguages.includes(item.language.toUpperCase())) // Filter out ignored languages
           .sort((a, b) => b.count - a.count)
           .slice(0, 15);
 
-        // Formatting the data for Treemap with initials and full names
+        // Formatting the data for Treemap with full names and colors
         const formattedData = top15Languages.map((item) => ({
-          name: languageNames[item.language] || 'Unknown', // Full name of the language
-          initials: item.language.toUpperCase(), // Initials of the language
+          name: languageNames[item.language] || 'Unknown', // Display only the full name of the language
           size: item.count,
+          fill: generateColor(), // Assign a random color to each language
         }));
 
         setLanguageData(formattedData);
@@ -53,15 +67,14 @@ const LanguageTreemap = () => {
         <Treemap
           data={languageData}
           dataKey="size"
-          nameKey="initials" // Display initials in the Treemap
+          nameKey="name" // Display full names in the Treemap
           stroke="#fff"
-          fill="#8884d8"
           isAnimationActive
         >
           <Tooltip
             content={({ payload }) => {
               if (!payload || !payload.length) return null;
-              const { name, size, initials } = payload[0].payload;
+              const { name, size } = payload[0].payload;
               return (
                 <div
                   style={{
@@ -70,7 +83,7 @@ const LanguageTreemap = () => {
                     padding: '5px',
                   }}
                 >
-                  <strong>{initials}</strong>: {name}
+                  <strong>{name}</strong>
                   <br />
                   Count: {size}
                 </div>

@@ -12,7 +12,7 @@ const WordCloudCard = () => {
       .then(data => {
         const topWords = data
           .map(item => ({
-            text: item.hashtag,
+            text: item.hashtag.replace(/[\[\]']+/g, ''), // Remove  and ' from text
             value: item.count,
           }))
           .sort((a, b) => b.value - a.value)
@@ -23,7 +23,8 @@ const WordCloudCard = () => {
       .catch(error => console.error('Error fetching word cloud data:', error));
   }, []);
 
-  const fontSizeMapper = word => Math.log2(word.value) * 35;
+  // Increase the multiplier to make the font size larger
+  const fontSizeMapper = word => Math.log2(word.value) * 1200; // Adjusted to 60 for larger font sizes
   const rotate = () => 0;
 
   const handleZoomIn = () => {
@@ -38,8 +39,10 @@ const WordCloudCard = () => {
             data={words}
             fontSizeMapper={fontSizeMapper}
             rotate={rotate}
-            width={400}  // Adjusted width for better layout
-            height={300} // Adjusted height for better layout
+            width={200}  // Adjusted width for better layout
+            height={180} // Adjusted height for better layout
+            font="serif"
+            
           />
         </div>
         <div style={{ flex: 1, maxHeight: '500px', overflowY: 'auto', borderLeft: '1px solid #ddd', paddingLeft: '10px' }}>
@@ -47,7 +50,7 @@ const WordCloudCard = () => {
           <ul style={{ listStyleType: 'none', padding: 0 }}>
             {words.map((word, index) => (
               <li key={index}>
-                {index + 1}. {word.text.replace(/[\[\]']+/g, '')} ({word.value} mentions)
+                {index + 1}. {word.text} ({word.value} mentions)
               </li>
             ))}
           </ul>

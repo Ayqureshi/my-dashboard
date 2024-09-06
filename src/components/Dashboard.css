@@ -9,7 +9,7 @@ body, html, #root, .App {
 .dashboard-container {
   display: grid;
   grid-template-columns: repeat(3, 1fr); /* Three columns layout */
-  gap: 20px; /* Spacing between cards */
+  gap: 10px; /* Spacing between cards */
   padding: 20px;
   min-height: 85vh;
   width: 100%;
