@@ -240,7 +240,7 @@ app.get('/tweets/top-mentions', async (req, res) => {
     const totalDocs = await Tweet.countDocuments();
     console.log(`Total documents in collection: ${totalDocs}`);
 
-    console.log("Helko")
+ 
 
     // Now let's count documents with mentionedUsers
     // const docsWithMentions = await Tweet.aggregate([{ $unwind: "$mentionedUsers" }]);
@@ -278,32 +278,32 @@ app.get('/tweets/top-mentions', async (req, res) => {
       return -1;
     })
 
-    // mentions_all.sort((a,b)=>{
-    //   return a
-    // })
+    mentions_all.sort((a,b)=>{
+      return a
+    })
   
   const top10 = mentions.slice(0, 10);
   console.log(top10);
 
-    // const mentions1 = await Tweet.aggregate([
-    //   { $unwind: "$mentionedUsers" },
-    //   { 
-    //     $match: { 
-    //       "mentionedUsers.displayname": { $exists: true, $ne: null, $ne: "" } 
-    //     }
-    //   },
+    const mentions1 = await Tweet.aggregate([
+      { $unwind: "$mentionedUsers" },
+      { 
+        $match: { 
+          "mentionedUsers.displayname": { $exists: true, $ne: null, $ne: "" } 
+        }
+      },
 
-    //   { 
-    //     $group: { 
-    //       _id: "$mentionedUsers.displayname",
-    //       count: { $sum: 1 } 
-    //     } 
-    //   }, 
-    //   { $sort: { count: -1 } },
-    //   { $limit: 10 }
-    // ]);
+      { 
+        $group: { 
+          _id: "$mentionedUsers.displayname",
+          count: { $sum: 1 } 
+        } 
+      }, 
+      { $sort: { count: -1 } },
+      { $limit: 10 }
+    ]);
 
-    // console.log("Aggregation result:", mentions);
+    console.log("Aggregation result:", mentions);
 
     if (mentions.length === 0) {
       return res.status(404).json({ message: 'No top mentions found' });

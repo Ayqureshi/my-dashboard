@@ -36,11 +36,11 @@ const Logo = styled(Typography)(({ theme }) => ({
   cursor: 'pointer',
   marginLeft: theme.spacing(2),
   textDecoration: 'none',
-  fontSize: '2vw',
+  fontSize: '1.5vw',
   fontWeight: 'normal',
   fontFamily: 'Rhodium Libre, serif',
   '@media (max-width: 768px)': {
-    fontSize: '4vw',
+    fontSize: '3vw',
   },
 }));
 
@@ -69,12 +69,12 @@ const SearchIconWrapper = styled('div')(({ theme }) => ({
 }));
 
 const StyledInputBase = styled(InputBase)(({ theme }) => ({
-  fontSize: '1.5vw',
+  fontSize: '1.2vw',
   fontWeight: 'normal',
   fontFamily: 'Rhodium Libre, serif',
   width: '100%',
   '@media (max-width: 768px)': {
-    fontSize: '3vw',
+    fontSize: '2.5vw',
   },
   '& .MuiInputBase-input': {
     padding: theme.spacing(1, 1, 1, 0),
@@ -99,19 +99,32 @@ const NavLinks = styled('div')({
   display: 'flex',
   gap: '20px',
   marginLeft: 'auto',
+  alignItems: 'center',
+  whiteSpace: 'nowrap', // Prevent wrapping of the links
 });
 
 const NavLink = styled(Button)(({ theme }) => ({
-  fontSize: '2vw',
+  fontSize: '1.5vw',
   fontWeight: 'normal',
   fontFamily: 'Rhodium Libre, serif',
   color: '#000',
   textTransform: 'none',
   textDecoration: 'none',
+  whiteSpace: 'nowrap', // Prevent text wrapping
+  padding: '0 8px',
+  minWidth: 'auto',
   '@media (max-width: 768px)': {
-    fontSize: '4vw',
+    fontSize: '3vw',
   },
 }));
+
+// Styling specifically for the About Us link to keep it in one line
+const AboutNavLink = styled(NavLink)({
+  maxWidth: '800px', // Set a smaller width to ensure it stays short
+  overflow: 'hidden',
+  whiteSpace: 'nowrap',
+  textOverflow: 'ellipsis', // Add ellipsis if text overflows
+});
 
 export default function Navbar({ toggleSidebar }) {
   const [searchValue, setSearchValue] = useState('');
@@ -119,19 +132,21 @@ export default function Navbar({ toggleSidebar }) {
   const searchContainerRef = useRef(null);
   const navigate = useNavigate();
   
-  const debouncedFetchSuggestions = useRef(debounce(async (value) => {
-    if (value) {
-      try {
-        const response = await fetch(`/tweets/search?q=${encodeURIComponent(value)}`);
-        const data = await response.json();
-        setSuggestions(data.slice(0, 3));
-      } catch (error) {
-        console.error('Error fetching suggestions:', error);
+  const debouncedFetchSuggestions = useRef(
+    debounce(async (value) => {
+      if (value) {
+        try {
+          const response = await fetch(`/tweets/search?q=${encodeURIComponent(value)}`);
+          const data = await response.json();
+          setSuggestions(data.slice(0, 3));
+        } catch (error) {
+          console.error('Error fetching suggestions:', error);
+        }
+      } else {
+        setSuggestions([]);
       }
-    } else {
-      setSuggestions([]);
-    }
-  }, 300)).current;
+    }, 300)
+  ).current;
 
   useEffect(() => {
     debouncedFetchSuggestions(searchValue);
@@ -153,7 +168,6 @@ export default function Navbar({ toggleSidebar }) {
     }
   };
 
-  // Add an event listener to detect clicks outside of the search container
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (searchContainerRef.current && !searchContainerRef.current.contains(event.target)) {
@@ -208,9 +222,9 @@ export default function Navbar({ toggleSidebar }) {
           )}
         </SearchContainer>
         <NavLinks>
-          <NavLink component={Link} to="https://election-integrity.online/">
+          <AboutNavLink component={Link} to="https://election-integrity.online/">
             about us
-          </NavLink>
+          </AboutNavLink>
           <NavLink component={Link} to="/support">
             support
           </NavLink>

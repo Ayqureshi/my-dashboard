@@ -5,31 +5,43 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 20px;
+  padding: 5px 10px;
   background-color: #fff;
   border-bottom: 1px solid #ccc;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  position: relative;
 }
 
 /* Adjust the font size and padding based on screen size */
 .navbar-text {
   font-family: 'Rhodium Libre', serif;
-  font-size: 2.5vw; /* 2.5% of the viewport width */
+  font-size: 1.5vw; /* Reduced from 2vw to 1.5vw */
   color: #333;
   text-decoration: none;
   font-weight: normal;
-  padding: 0 10px;
+  padding: 0 5px;
+}
+
+/* Add a black bar at the bottom of the navbar */
+.navbar-container::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 5px;
+  background-color: black;
 }
 
 /* Media queries for smaller screens */
 @media (max-width: 768px) {
   .navbar-text {
-    font-size: 4vw; /* 4% of the viewport width */
+    font-size: 2.5vw; /* Reduced from 3vw to 2.5vw */
   }
 }
 
 @media (max-width: 480px) {
   .navbar-text {
-    font-size: 5vw; /* 5% of the viewport width */
+    font-size: 3.5vw; /* Reduced from 4vw to 3.5vw */
   }
 }
